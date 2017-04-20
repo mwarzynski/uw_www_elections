@@ -1,16 +1,15 @@
-from django.db import IntegrityError
 from django.http.response import Http404, HttpResponseRedirect, HttpResponse, HttpResponseServerError
+from django.db import IntegrityError, transaction
+from django.db.models import Sum
 from django.views import View
 from django.shortcuts import render
+from elections.forms import CircuitForm
 import elections.models
-from elections.forms import *
-from django.db.models import Sum
-from django.db import transaction
 
 
 class MainView(View):
     @staticmethod
-    def prepare_results(results):
+    def prepare_people(results):
         s = 0
         for r in results:
             s += r.votes
@@ -38,7 +37,7 @@ class Country(MainView):
         }
 
         results = elections.models.Candidate.objects.annotate(votes=Sum('candidateresult__votes')).order_by('-votes')
-        data["people"] = self.prepare_results(results)
+        data["people"] = self.prepare_people(results)
         data["voivodeships"] = elections.models.Voivodeship.objects.annotate(votes=Sum('precinct__boroughs__circuit__candidateresult__votes'))
 
         return render(request, "elections/index.html", context=data)
@@ -46,16 +45,18 @@ class Country(MainView):
 
 class Voivodeship(MainView):
     def get(self, request, voivodeship_id):
-        data = {}
-
-        vs = elections.models.Voivodeship.objects.filter(id=voivodeship_id)
-        if len(vs) == 0:
+        try:
+            v = elections.models.Voivodeship.objects.filter(id=voivodeship_id)
+        except elections.models.CandidateResult.DoesNotExist:
             raise Http404("Voivodeship not found.")
-        v = vs[0]
-        data["title"] = "Województwo - " + v.name
 
-        results = elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct__voivodeship_id=v.id).annotate(votes=Sum('candidateresult__votes')).order_by('-votes')
-        data["people"] = self.prepare_results(results)
+        people = elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct__voivodeship_id=v.id).annotate(
+            votes=Sum('candidateresult__votes')).order_by('-votes')
+
+        data = {
+            "title": "Województwo - " + v.name,
+            "people": self.prepare_people(people)
+        }
 
         precincts = elections.models.Precinct.objects.filter(voivodeship_id=v.id)
         pages = []
@@ -68,15 +69,18 @@ class Voivodeship(MainView):
 
 class Precinct(MainView):
     def get(self, request, precinct_id):
-        data = {}
-        ps = elections.models.Precinct.objects.filter(id=precinct_id)
-        if len(ps) == 0:
+        try:
+            precinct = elections.models.Precinct.objects.filter(id=precinct_id)
+        except elections.models.CandidateResult.DoesNotExist:
             raise Http404("Precinct not found.")
-        precinct = ps[0]
-        data["title"] = "Okręg - " + precinct.name
 
-        results = elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct=precinct.id).annotate(votes=Sum('candidateresult__votes')).order_by('-votes')
-        data["people"] = self.prepare_results(results)
+        people = elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct=precinct.id).annotate(
+            votes=Sum('candidateresult__votes')).order_by('-votes')
+
+        data = {
+            "title": "Okręg - " + precinct.name,
+            "people": self.prepare_people(people)
+        }
 
         boroughs = elections.models.Borough.objects.filter(precinct=precinct.id)
         pages = []
@@ -89,35 +93,34 @@ class Precinct(MainView):
 
 class Borough(MainView):
     def get(self, request, borough_id):
+        try:
+            borough = elections.models.Borough.objects.filter(id=borough_id)
+        except elections.models.CandidateResult.DoesNotExist:
+            raise Http404("Precinct not found.")
+
+        people = elections.models.Candidate.objects.filter(candidateresult__circuit__borough=borough.id).annotate(
+            votes=Sum('candidateresult__votes')).order_by('-votes')
+
         data = {
-            "borough_mode": True
+            "borough_mode": True,
+            "title": "Gmina - " + borough.name,
+            "people": self.prepare_people(people),
+            "candidates": elections.models.Candidate.objects.order_by("last_name")
         }
 
-        bs = elections.models.Borough.objects.filter(id=borough_id)
-        if len(bs) == 0:
-            raise Http404("Borough not found.")
-        borough = bs[0]
-        data["title"] = "Gmina - " + borough.name
-
-        results = elections.models.Candidate.objects.filter(candidateresult__circuit__borough=borough.id).annotate(votes=Sum('candidateresult__votes')).order_by('-votes')
-        data["people"] = self.prepare_results(results)
-
-        candidates = elections.models.Candidate.objects.order_by("last_name")
-        data["candidates"] = candidates
-
-        circuits = elections.models.Circuit.objects.filter(borough=borough.id).order_by("id")
-        cdata = []
+        circuits = []
         i = 1
-        for circuit in circuits:
-            candidates = elections.models.Candidate.objects.filter(candidateresult__circuit=circuit.id).annotate(votes=Sum('candidateresult__votes')).order_by('last_name')
-            cdata.append({
+        for circuit in elections.models.Circuit.objects.filter(borough=borough.id).order_by("id"):
+            candidates = elections.models.Candidate.objects.filter(candidateresult__circuit=circuit.id).annotate(votes=Sum('candidateresult__votes')).order_by(
+                'last_name')
+            circuits.append({
                 'i': i,
                 'id': circuit.id,
                 'address': circuit.address,
                 'candidates': candidates
             })
             i += 1
-        data['circuits'] = cdata
+        data['circuits'] = circuits
 
         return render(request, "elections/index.html", context=data)
 
@@ -129,20 +132,19 @@ class BoroughSearch(View):
             'title': 'Wyszukiwarka gmin.',
             'searched': False,
         }
-        query_text = request.GET.get('query')
-        if not query_text:
+        query = request.GET.get('query')
+        if not query:
             return render(request, "manage/search.html", context=data)
 
-        results = elections.models.Borough.objects.filter(name__icontains=query_text)
+        results = elections.models.Borough.objects.filter(name__icontains=query)
         data['searched'] = True
-        data['query'] = query_text
+        data['query'] = query
         data['results'] = results
 
         return render(request, "manage/search.html", context=data)
 
 
 class CircuitEdit(MainView):
-
     def generate_data(self, circuit_id):
         circuit = self.get_circuit(circuit_id)
         return {
