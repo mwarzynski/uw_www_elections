@@ -45,10 +45,10 @@ class Country(MainView):
 
 class Voivodeship(MainView):
     def get(self, request, voivodeship_id):
-        try:
-            v = elections.models.Voivodeship.objects.filter(id=voivodeship_id)
-        except elections.models.CandidateResult.DoesNotExist:
+        v = elections.models.Voivodeship.objects.filter(id=voivodeship_id)
+        if not v:
             raise Http404("Voivodeship not found.")
+        v = v.first()
 
         people = elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct__voivodeship_id=v.id).annotate(
             votes=Sum('candidateresult__votes')).order_by('-votes')
@@ -69,10 +69,10 @@ class Voivodeship(MainView):
 
 class Precinct(MainView):
     def get(self, request, precinct_id):
-        try:
-            precinct = elections.models.Precinct.objects.filter(id=precinct_id)
-        except elections.models.CandidateResult.DoesNotExist:
+        precinct = elections.models.Precinct.objects.filter(id=precinct_id)
+        if not precinct:
             raise Http404("Precinct not found.")
+        precinct = precinct.first()
 
         people = elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct=precinct.id).annotate(
             votes=Sum('candidateresult__votes')).order_by('-votes')
@@ -93,10 +93,10 @@ class Precinct(MainView):
 
 class Borough(MainView):
     def get(self, request, borough_id):
-        try:
-            borough = elections.models.Borough.objects.filter(id=borough_id)
-        except elections.models.CandidateResult.DoesNotExist:
+        borough = elections.models.Borough.objects.filter(id=borough_id)
+        if not borough:
             raise Http404("Precinct not found.")
+        borough = borough.first()
 
         people = elections.models.Candidate.objects.filter(candidateresult__circuit__borough=borough.id).annotate(
             votes=Sum('candidateresult__votes')).order_by('-votes')
@@ -175,9 +175,8 @@ class CircuitEdit(MainView):
                 candidates = []
                 valid_votes = 0
                 for candidate_id, votes in form.cleaned_data.items():
-                    try:
-                        c = elections.models.CandidateResult.objects.get(candidate_id=candidate_id, circuit_id=circuit.id)
-                    except elections.models.CandidateResult.DoesNotExist:
+                    c = elections.models.CandidateResult.objects.get(candidate_id=candidate_id, circuit_id=circuit.id)
+                    if not c:
                         return HttpResponse("Given candidate not found.")
                     c.votes = votes
                     candidates.append(c)
