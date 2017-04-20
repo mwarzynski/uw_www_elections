@@ -164,7 +164,7 @@ class CircuitEdit(MainView):
 
         try:
             with transaction.atomic():
-                circuit = self.get_circuit(circuit_id)
+                circuit = elections.models.Circuit.objects.select_for_update().filter(id=circuit_id)[0]
                 form = CircuitForm(request.POST, circuit=circuit)
 
                 if not form.is_valid():
@@ -182,10 +182,10 @@ class CircuitEdit(MainView):
                     candidates.append(c)
                     valid_votes += votes
 
-                for c in candidates:
-                    c.save()
                 circuit.valid_cards = valid_votes
                 circuit.save()
+                for c in candidates:
+                    c.save()
 
                 return HttpResponseRedirect('/borough/' + str(circuit.borough_id))
 
