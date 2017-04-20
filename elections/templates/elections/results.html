@@ -1,0 +1,31 @@
+<div class="results">
+    <table>
+        <thead>
+        <tr>
+            <th>Lp</th>
+            <th>Imię i nazwisko</th>
+            <th>Głosów</th>
+            <th>Wynik wyborczy</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        {% for person in people %}
+            <tr>
+                <td>{{ person.index }}</td>
+                <td>{{ person }}</td>
+                <td>{{ person.votes }}</td>
+                <td>
+                    <div class="results-bar">
+                        <div style="width: {{ person.percentage }}%;"
+                             class="{% if person.index == 1 %}red{% endif %}{% if person.index == 2 %}blue{% endif %}"></div>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+</div>

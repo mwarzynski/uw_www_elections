@@ -1,0 +1,6 @@
+<header id="top_header">
+    <h1>{{ title }}</h1>
+    {% if user.is_authenticated %}
+        <p>Witaj, {{ user|title }}.</p>
+    {% endif %}
+</header>

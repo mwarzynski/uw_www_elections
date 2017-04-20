@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% include "elections/head.html" %}
+</head>
+
+<body>
+
+{% include "elections/header.html" %}
+
+<div id="wrapper">
+    <section>
+        <h2>Wydanych kart: {{ circuit.cards }}.</h2>
+    </section>
+    <section>
+        <form action="/circuit/{{ circuit.id }}/edit" method="post" id="edit_circuit">
+            {% csrf_token %}
+            {{ form.as_ul }}
+            <input type="submit" value="Zapisz"/>
+        </form>
+    </section>
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,283 @@
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 360px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+#top_header {
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+
+    background-color: #d44238;
+    box-shadow: 0 0 4px rgba(0, 0, 0, .14), 0 4px 8px rgba(0, 0, 0, .28);
+    z-index: 10;
+
+    text-align: center;
+    vertical-align: middle;
+
+    margin: 0 0 20px;
+
+    color: #ffffff;
+}
+
+#top_header h1 {
+    margin: 0;
+    padding: 20px 0;
+
+    outline: 0;
+    font: 400 24px Roboto, sans-serif;
+}
+
+#top_header p {
+    display: inline-block;
+    margin-top: 0;
+}
+
+#borough-search form input {
+    padding: 5px;
+    width: 150px;
+}
+
+#borough-search form button {
+    padding: 5px;
+}
+
+#wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+#wrapper > section {
+    margin: 10px 5%;
+}
+
+table {
+    margin: auto;
+    border-spacing: 0;
+    width: 100%;
+}
+
+table thead {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+table thead tr th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #f3f3f3;
+    padding: 8px;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+table tbody tr {
+    display: table-row;
+    vertical-align: inherit;
+    border-color: inherit;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f3f3f3;
+}
+
+#circuits {
+    overflow-x: scroll;
+}
+
+#circuits table thead tr th:nth-child(2) {
+    min-width: 200px;
+}
+
+.results table tbody tr:hover {
+    background-color: #ffa700;
+}
+
+td a {
+    text-decoration: none;
+    color: #000;
+}
+
+td a:hover {
+    transition: color 0.25s ease;
+    color: #b70c00;
+}
+
+.results .results-bar {
+    min-width: 100%;
+    min-height: 100%;
+}
+
+.results .results-bar div:after {
+    content: '\200b';
+}
+
+.results .results-bar .red {
+    background-color: #d44238;
+}
+
+.results .results-bar .blue {
+    background-color: #1d8bc1;
+}
+
+.results .results-bar div {
+    background-color: grey;
+}
+
+#map {
+    height: 500px;
+}
+
+#edit_circuit > li {
+    display: flex;
+    flex-direction: row;
+    text-decoration: none;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+#edit_circuit li > * {
+    display: inline-flex;
+    flex: 1 1 50%;
+    padding: 5px;
+    font-size: 16px;
+}
+
+#edit_circuit > li > ul > li {
+    background: inherit;
+    color: #d44238;
+}
+
+#edit_circuit input[type="submit"] {
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    padding: .5rem 1rem;
+    font-size: 1rem;
+    border-radius: .25rem;
+    color: #fff;
+    background-color: #d9534f;
+    border-color: #d9534f;
+    transition: all .2s ease-in-out;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#edit_circuit input[type="submit"]:hover {
+    color: #fff;
+    background-color: #c9302c;
+    border-color: #c12e2a;
+}
+
+#borough-results ul {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.results ul {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0;
+}
+
+.results ul li {
+    flex: 1 0 50px;
+    align-items: center;
+    list-style: none;
+
+    min-height: 25px;
+    margin: 5px;
+
+    background-color: #d44238;
+}
+
+.results ul li a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+
+    margin: 0;
+    padding: 10px;
+
+    color: #ffffff;
+    font-size: 18px;
+}
+
+.results ul li:hover {
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+    background-color: #b70c00;
+}
+
+@media all and (max-width: 600px) {
+
+    #top_header h1 {
+        font-size: 15px;
+    }
+
+    #top_header p {
+        font-size: 13px;
+    }
+
+    table tbody td {
+        font-size: 14px;
+        padding: 6px;
+    }
+
+    table thead th {
+        font-size: 14px;
+    }
+
+    .results table tr th:nth-child(4) {
+        display: none;
+    }
+
+    .results .results-bar {
+        display: none;
+    }
+
+    #map {
+        height: 250px;
+    }
+
+    #edit_circuit li > * {
+        font-size: 13px;
+    }
+
+}
+
+@media all and (min-width: 600px) {
+
+    table td {
+        padding: 8px;
+    }
+
+    .results .results-bar div {
+        height: 16px;
+    }
+
+}
+
+/* Remove some elements from Google Charts Geo */
+#map > div > div:nth-child(1) > div > svg > g > g:nth-child(3) {
+    display: none;
+}
+
+#map > div > div:nth-child(1) > div > svg > g > rect {
+    display: none;
+}
+
+path[fill='#123456'] {
+    display: none !important
+}

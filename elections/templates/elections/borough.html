@@ -1,0 +1,36 @@
+<div id="circuits">
+    <table>
+        <thead>
+        <tr>
+            <th>Lp</th>
+            <th>Nazwa</th>
+            {% for candidate in candidates %}
+                <th>{{ candidate }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+
+        <tbody>
+
+        {% for circuit in circuits %}
+            <tr>
+                <td>{{ circuit.i }}</td>
+                <td>
+                    {% if user.is_authenticated %}
+                        <a href="/circuit/{{ circuit.id }}/edit">
+                            {{ circuit.address }}
+                        </a>
+                    {% else %}
+                        {{ circuit.address }}
+                    {% endif %}
+                </td>
+                {% for candidate in circuit.candidates %}
+                    <td>{{ candidate.votes }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+</div>

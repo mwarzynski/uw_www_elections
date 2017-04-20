@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    {% include "elections/head.html" %}
+</head>
+
+<body>
+
+{% include "elections/header.html" %}
+
+<div id="wrapper">
+
+    <section id="borough-search">
+        <form method="get">
+            <input type="text" name="query" placeholder="Nazwa gminy" value="{{ query }}"/>
+            <button type="submit">Wyszukaj</button>
+        </form>
+    </section>
+
+    <section class="results">
+    {% if results|length > 0 %}
+            <ul>
+                {% for result in results %}
+                    <li><a href="/borough/{{ result.id }}">{{ result.name }}</a></li>
+                {% endfor %}
+            </ul>
+    {% elif searched and results|length == 0 %}
+            <p>Nie znaleziono żadnej gminy.</p>
+    {% endif %}
+    </section>
+
+</div>
+
+</body>
+
+</html>
