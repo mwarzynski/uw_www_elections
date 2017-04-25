@@ -10,7 +10,7 @@ urlpatterns = [
     url(r'precinct/(?P<precinct_id>[0-9]+)/$', views.Precinct.as_view(), name='precinct'),
     url(r'borough/(?P<borough_id>[0-9]+)$', views.Borough.as_view(), name='borough'),
     url(r'borough/search', views.BoroughSearch.as_view(), name='borough_search'),
-    url(r'circuit/(?P<circuit_id>[0-9]+)/edit$', views.CircuitEdit.as_view(), name='circuit_edit'),
+    url(r'circuit/(?P<circuit_id>[0-9]+)$', views.CircuitEdit.as_view(), name='circuit_edit'),
 
     # Authentication URLs
     url(r'login/$', auth_views.login, kwargs={'redirect_authenticated_user': True}, name='login'),

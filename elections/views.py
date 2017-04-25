@@ -25,13 +25,6 @@ class MainView(View):
             })
         return cd
 
-    @staticmethod
-    def get_circuit(circuit_id):
-        try:
-            return elections.models.Circuit.objects.get(id=circuit_id)
-        except elections.models.CandidateResult.DoesNotExist:
-            raise Http404("Given circuit not found.")
-
 
 class Country(MainView):
     def get(self, request):
@@ -46,7 +39,7 @@ class Voivodeship(MainView):
     def get(self, request, voivodeship_id):
         v = elections.models.Voivodeship.objects.filter(id=voivodeship_id)
         if not v:
-            return JsonResponse({'status': 'false', 'message': "Voivodeship not found."}, status=404)
+            return JsonResponse({'message': "Voivodeship not found."}, status=404)
         v = v.first()
 
         data = {
@@ -65,7 +58,7 @@ class Precinct(MainView):
     def get(self, request, precinct_id):
         precinct = elections.models.Precinct.objects.filter(id=precinct_id)
         if not precinct:
-            return JsonResponse({'status': 'false', 'message': "Precinct not found."}, status=404)
+            return JsonResponse({'message': "Precinct not found."}, status=404)
         precinct = precinct.first()
 
         data = {
@@ -84,7 +77,7 @@ class Borough(MainView):
     def get(self, request, borough_id):
         borough = elections.models.Borough.objects.filter(id=borough_id)
         if not borough:
-            return JsonResponse({'status': 'false', 'message': "Borough not found."}, status=404)
+            return JsonResponse({'message': "Borough not found."}, status=404)
         borough = borough.first()
 
         data = {
@@ -131,22 +124,32 @@ class BoroughSearch(View):
 
 
 class CircuitEdit(MainView):
-    def generate_data(self, circuit_id):
-        circuit = self.get_circuit(circuit_id)
-        return {
-            "title": "Edycja obwodu - " + str(circuit.address) + " (" + str(circuit.id) + ")",
-            "circuit": circuit,
-            'form': CircuitForm(circuit=circuit)
-        }
-
     def get(self, request, circuit_id):
         if not request.user.is_authenticated:
-            return HttpResponseRedirect(redirect_to='/login')
-        return render(request, "manage/edit.html", context=self.generate_data(circuit_id))
+            return JsonResponse({'message': "You are not authenticated. Please, log in and try again."}, status=403)
+        c = elections.models.Circuit.objects.filter(id=circuit_id)
+        if not c:
+            return JsonResponse({'message': "Circuit not found."}, status=404)
+        circuit = c.first()
+
+        form = CircuitForm(circuit=circuit)
+        fields = {}
+        for key, value in form.fields.items():
+            fields[key] = {
+                "label": str(value.label),
+                "initial": value.initial,
+                "min_value": value.min_value
+            }
+        data = {
+            "name": circuit.address,
+            "form": fields
+        }
+
+        return JsonResponse(data)
 
     def post(self, request, circuit_id):
         if not request.user.is_authenticated:
-            return HttpResponseRedirect(redirect_to='/login')
+            return JsonResponse({'message': "You are not authenticated. Please, log in and try again."}, status=403)
 
         try:
             with transaction.atomic():
@@ -154,16 +157,15 @@ class CircuitEdit(MainView):
                 form = CircuitForm(request.POST, circuit=circuit)
 
                 if not form.is_valid():
-                    data = self.generate_data(circuit_id)
-                    data["form"] = form
-                    return render(request, "manage/edit.html", context=data)
+                    return JsonResponse({"message": "Invalid form.", "errors": form.errors}, status=400)
 
                 candidates = []
                 valid_votes = 0
                 for candidate_id, votes in form.cleaned_data.items():
                     c = elections.models.CandidateResult.objects.get(candidate_id=candidate_id, circuit_id=circuit.id)
                     if not c:
-                        return HttpResponse("Given candidate not found.")
+                        return JsonResponse({"message": "Given candidate not found."}, status=404)
+
                     c.votes = votes
                     candidates.append(c)
                     valid_votes += votes
@@ -173,7 +175,7 @@ class CircuitEdit(MainView):
                 for c in candidates:
                     c.save()
 
-                return HttpResponseRedirect('/borough/' + str(circuit.borough_id))
+                return JsonResponse(data=None, status=204)
 
         except IntegrityError:
-            return HttpResponseServerError("Integrity error. Please redo your changes.")
+            return JsonResponse({"message": "Integrity error. Please redo your changes."}, status=500)
