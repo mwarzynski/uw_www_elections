@@ -1,0 +1,199 @@
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 360px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+#top_header {
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+
+    background-color: #d44238;
+    box-shadow: 0 0 4px rgba(0, 0, 0, .14), 0 4px 8px rgba(0, 0, 0, .28);
+    z-index: 10;
+
+    text-align: center;
+    vertical-align: middle;
+
+    margin: 0 0 20px;
+}
+
+#top_header h1 {
+    margin: 0;
+    padding: 20px 0;
+    color: #ffffff;
+    outline: 0;
+    font: 400 24px Roboto, sans-serif;
+}
+
+#wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+#wrapper > div {
+    margin: 10px 5%;
+}
+
+table {
+    margin: auto;
+    border-spacing: 0;
+    width: 100%;
+}
+
+table thead {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+table thead tr th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #f3f3f3;
+    padding: 8px;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+table tbody tr {
+    display: table-row;
+    vertical-align: inherit;
+    border-color: inherit;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f3f3f3;
+}
+
+#obwody {
+    overflow-x: scroll;
+}
+
+#obwody table thead tr th:nth-child(2) {
+    min-width: 200px;
+}
+
+.results table tbody tr:hover {
+    background-color: #ffa700;
+}
+
+.results .results-bar {
+    min-width: 100%;
+    min-height: 100%;
+}
+
+.results .results-bar div:after {
+    content: '\200b';
+}
+
+.results .results-bar .red {
+    background-color: #d44238;
+}
+
+.results .results-bar .blue {
+    background-color: #1d8bc1;
+}
+
+.results .results-bar div {
+    background-color: grey;
+}
+
+#map {
+    height: 500px;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+ul li {
+    flex-grow: 1;
+    align-items: center;
+    list-style: none;
+
+    min-height: 25px;
+
+    margin: 5px;
+
+    background-color: #d44238;
+}
+
+ul li a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+
+    margin: 0;
+    padding: 10px;
+
+    color: #ffffff;
+    font-size: 18px;
+}
+
+ul li:hover {
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+    background-color: #b70c00;
+}
+
+@media all and (max-width: 600px) {
+
+    #top_header h1 {
+        font-size: 15px;
+    }
+
+    table tbody td {
+        font-size: 14px;
+        padding: 6px;
+    }
+
+    table thead th {
+        font-size: 14px;
+    }
+
+    .results table tr th:nth-child(4) {
+        display: none;
+    }
+
+    .results .results-bar {
+        display: none;
+    }
+
+    #map {
+        height: 250px;
+    }
+
+}
+
+@media all and (min-width: 600px) {
+
+    table td {
+        padding: 8px;
+    }
+
+    .results .results-bar div {
+        height: 16px;
+    }
+
+}
+
+/* Remove some elements from Google Charts Geo */
+#map > div > div:nth-child(1) > div > svg > g > g:nth-child(3) {
+    display: none;
+}
+
+#map > div > div:nth-child(1) > div > svg > g > rect {
+    display: none;
+}
+
+path[fill='#123456'] {
+    display: none !important
+}
