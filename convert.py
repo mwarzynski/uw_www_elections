@@ -4,7 +4,7 @@ import os
 import xlrd
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "zadanie2.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "app.settings")
 django.setup()
 from elections.models import *
 
