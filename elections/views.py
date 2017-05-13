@@ -107,20 +107,17 @@ class Borough(MainView):
 class BoroughSearch(View):
     @staticmethod
     def get(request):
-        data = {
-            'title': 'Wyszukiwarka gmin.',
-            'searched': False,
-        }
         query = request.GET.get('query')
         if not query:
-            return render(request, "manage/search.html", context=data)
+            return JsonResponse({"message": "Query is not defined."}, status=400)
 
         results = elections.models.Borough.objects.filter(name__icontains=query)
-        data['searched'] = True
-        data['query'] = query
-        data['results'] = results
-
-        return render(request, "manage/search.html", context=data)
+        data = {
+            "searched": True,
+            "query": query,
+            "results": results
+        }
+        return JsonResponse(data)
 
 
 class CircuitEdit(MainView):

@@ -4,7 +4,6 @@ from . import views
 
 urlpatterns = [
     # Elections URLs
-    url(r'^$', views.Country.as_view(), name='country'),
     url(r'voivodeship/(?P<voivodeship_id>[0-9]+)/$', views.Voivodeship.as_view(), name='voivodeship'),
     url(r'precinct/(?P<precinct_id>[0-9]+)/$', views.Precinct.as_view(), name='precinct'),
     url(r'borough/(?P<borough_id>[0-9]+)$', views.Borough.as_view(), name='borough'),

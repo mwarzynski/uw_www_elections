@@ -1,8 +1,0 @@
-<header id="top_header">
-    <h1>{{ title }}</h1>
-    {% if user.is_authenticated %}
-        <p>Witaj, {{ user|title }} <a href="/logout">(wyloguj)</a>.</p>
-    {% else %}
-        <p><a href="/login">Zaloguj.</a></p>
-    {% endif %}
-</header>
