@@ -40,6 +40,7 @@ class ResultsVoivodeship(MainView):
             return JsonResponse({'message': "Voivodeship not found."}, status=404)
         v = v.first()
         return JsonResponse({
+            "name": v.name,
             "people": self.prepare_people(elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct__voivodeship=v.id).annotate(
                 votes=Sum('candidateresult__votes')).order_by('-votes'))
         })
@@ -52,6 +53,7 @@ class ResultsPrecinct(MainView):
             return JsonResponse({'message': "Precinct not found."}, status=404)
         precinct = precinct.first()
         return JsonResponse({
+            "name": precinct.name,
             "people": self.prepare_people(elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct=precinct.id).annotate(
                 votes=Sum('candidateresult__votes')).order_by('-votes'))
         })
@@ -65,6 +67,7 @@ class ResultsBorough(MainView):
         borough = borough.first()
 
         return JsonResponse({
+            "name": borough.name,
             "people": self.prepare_people(elections.models.Candidate.objects.filter(candidateresult__circuit__borough=borough.id).annotate(
                 votes=Sum('candidateresult__votes')).order_by('-votes'))
         })
