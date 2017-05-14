@@ -8,9 +8,6 @@ class CircuitForm(forms.Form):
         self.circuit = kwargs.pop('circuit')
         super(CircuitForm, self).__init__(*args, **kwargs)
 
-        results = self.circuit.candidateresult_set.all()
-        for result in results:
-            self.fields[str(result.candidate.id)] = forms.IntegerField(min_value=0, label=result.candidate, initial=result.votes)
 
     def clean(self):
         total_votes = self.circuit.cards
