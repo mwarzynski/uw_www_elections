@@ -26,32 +26,102 @@ class MainView(View):
         return cd
 
 
-class Country(MainView):
+class ResultsCountry(MainView):
     def get(self, request):
         return JsonResponse({
-            "voivodeships": [{"id": v.id, "name": v.name, "code": v.code, "votes": v.votes} for v in
-                             elections.models.Voivodeship.objects.annotate(votes=Sum('precinct__boroughs__circuit__candidateresult__votes'))],
             "people": self.prepare_people(elections.models.Candidate.objects.annotate(votes=Sum('candidateresult__votes')).order_by('-votes'))
         })
 
 
-class Voivodeship(MainView):
+class ResultsVoivodeship(MainView):
     def get(self, request, voivodeship_id):
         v = elections.models.Voivodeship.objects.filter(id=voivodeship_id)
         if not v:
             return JsonResponse({'message': "Voivodeship not found."}, status=404)
         v = v.first()
-
-        data = {
-            "name": v.name,
-            "people": self.prepare_people(elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct__voivodeship_id=v.id).annotate(
+        return JsonResponse({
+            "people": self.prepare_people(elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct__voivodeship=v.id).annotate(
                 votes=Sum('candidateresult__votes')).order_by('-votes'))
-        }
+        })
 
+
+class ResultsPrecinct(MainView):
+    def get(self, request, precinct_id):
+        precinct = elections.models.Precinct.objects.filter(id=precinct_id)
+        if not precinct:
+            return JsonResponse({'message': "Precinct not found."}, status=404)
+        precinct = precinct.first()
+        return JsonResponse({
+            "people": self.prepare_people(elections.models.Candidate.objects.filter(candidateresult__circuit__borough__precinct=precinct.id).annotate(
+                votes=Sum('candidateresult__votes')).order_by('-votes'))
+        })
+
+
+class ResultsBorough(MainView):
+    def get(self, request, borough_id):
+        borough = elections.models.Borough.objects.filter(id=borough_id)
+        if not borough:
+            return JsonResponse({'message': "Borough not found."}, status=404)
+        borough = borough.first()
+
+        return JsonResponse({
+            "people": self.prepare_people(elections.models.Candidate.objects.filter(candidateresult__circuit__borough=borough.id).annotate(
+                votes=Sum('candidateresult__votes')).order_by('-votes'))
+        })
+
+
+class ResultsCircuit(MainView):
+    def get(self, request, borough_id):
+        borough = elections.models.Borough.objects.filter(id=borough_id)
+        if not borough:
+            return JsonResponse({'message': "Borough not found."}, status=404)
+        borough = borough.first()
+
+        results = []
+        for circuit in elections.models.Circuit.objects.filter(borough=borough.id).order_by("id"):
+            candidates = elections.models.Candidate.objects.filter(candidateresult__circuit=circuit.id).annotate(votes=Sum('candidateresult__votes')).order_by(
+                'last_name')
+            results.append({
+                'id': circuit.id,
+                'address': circuit.address,
+                'votes': [c.votes for c in candidates]
+            })
+        return JsonResponse({
+            "candidates": [str(c) for c in elections.models.Candidate.objects.order_by("last_name")],
+            "circuits": results
+        })
+
+
+class PagesVoivodeship(MainView):
+    def get(self, request, voivodeship_id):
+        v = elections.models.Voivodeship.objects.filter(id=voivodeship_id)
+        if not v:
+            return JsonResponse({'message': "Voivodeship not found."}, status=404)
+        v = v.first()
+        data = {}
         precincts = elections.models.Precinct.objects.filter(voivodeship_id=v.id)
         data["pages"] = [{'link': 'precinct/' + str(p.id), 'name': p.name + " (" + str(p.id) + ")"} for p in precincts]
-
         return JsonResponse(data)
+
+
+class PagesPrecinct(MainView):
+    def get(self, request, precinct_id):
+        precinct = elections.models.Precinct.objects.filter(id=precinct_id)
+        if not precinct:
+            return JsonResponse({'message': "Precinct not found."}, status=404)
+        precinct = precinct.first()
+        data = {}
+        boroughs = elections.models.Borough.objects.filter(precinct=precinct.id)
+        pages = [{'link': 'borough/' + str(b.id), 'name': b.name} for b in boroughs]
+        data["pages"] = pages
+        return JsonResponse(data)
+
+
+class Voivodeship(MainView):
+    def get(self, request):
+        return JsonResponse({"voivodeships": [{"id": v.id, "name": v.name, "code": v.code, "votes": v.votes} for v in
+                                              elections.models.Voivodeship.objects.annotate(
+                                                  votes=Sum('precinct__boroughs__circuit__candidateresult__votes'))], })
 
 
 class Precinct(MainView):
