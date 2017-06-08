@@ -3,6 +3,16 @@ from elections.forms import CircuitForm
 from elections.models import Circuit, Borough, Candidate, CandidateResult
 from django.test import Client
 
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.common.by import By
+
+from time import sleep
+
 
 class BoroughSearchTest(TestCase):
 
@@ -117,3 +127,75 @@ class CircuitFormTest(TestCase):
         }
         form = CircuitForm(data, circuit=self.circuit)
         self.assertFalse(form.is_valid())
+
+
+
+class ElectionsTests(StaticLiveServerTestCase):
+    url = "http://localhost:3000"
+
+    @classmethod
+    def setUpClass(cls):
+        super(ElectionsTests, cls).setUpClass()
+        cls.selenium = webdriver.Chrome()
+        cls.selenium.implicitly_wait(10)
+
+    def wait(self, driver, element):
+        driver.set_script_timeout(10)
+        driver.execute_async_script("""
+                callback = arguments[arguments.length - 1];
+                angular.element('""" + element + """').injector().get('$browser').notifyWhenNoOutstandingRequests(callback);""")
+
+    @staticmethod
+    def load_page(driver, url, expected_id, delay=3):
+        driver.get(url)
+        try:
+            WebDriverWait(driver, delay).until(expected_conditions.presence_of_element_located((By.ID, expected_id)))
+        except TimeoutException:
+            assert False
+
+    @staticmethod
+    def login(driver, username_value, password_value):
+        username_field = driver.find_element_by_id("username")
+        username_field.clear()
+        username_field.send_keys(username_value)
+
+        password_field = driver.find_element_by_id("password")
+        password_field.clear()
+        password_field.send_keys(password_value)
+
+        submit_button = driver.find_element_by_xpath('//*[@id="wrapper"]/ng-component/div/form/div[3]/button')
+        submit_button.click()
+
+    def test_login(self):
+        self.selenium.get('%s%s' % (self.live_server_url, '/login/'))
+        username_input = self.selenium.find_element_by_name("username")
+        username_input.send_keys('myuser')
+        password_input = self.selenium.find_element_by_name("password")
+        password_input.send_keys('secret')
+        self.selenium.find_element_by_xpath('//input[@value="Log in"]').click()
+
+    def test_login_valid(self):
+        driver = self.selenium
+        self.load_page(driver, self.url + "/login", 'username')
+        self.login(driver, "mateusz", "mateuszmateusz")
+        sleep(1)
+        assert "Niepoprawne dane" not in driver.page_source
+
+    def test_login_invalid(self):
+        driver = self.selenium
+        self.load_page(driver, self.url + "/login", 'username')
+        self.login(driver, "jankowalski", "234567")
+        sleep(1)
+        assert "Niepoprawne dane" in driver.page_source
+
+    def test_not_logged_in(self):
+        driver = self.selenium
+        driver.implicitly_wait(10)
+        driver.get("http://localhost:3000/borough/293")
+        driver.find_element_by_id("circuits")
+        sleep(3000)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.selenium.quit()
+        super(ElectionsTests, cls).tearDownClass()
