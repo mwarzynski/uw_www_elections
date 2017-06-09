@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from rest_framework.authtoken import views as auth_views
 from . import views
+from elections.admin import admin_site
 
 urlpatterns = [
     # Elections, results
@@ -25,4 +26,6 @@ urlpatterns = [
 
     # Authentication URLs
     url(r'^login/', auth_views.obtain_auth_token),
+
+    url(r'^elections/admin/', admin_site.urls),
 ]
